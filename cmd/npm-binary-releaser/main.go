@@ -128,8 +128,7 @@ func run(c Config) error {
 	allPackageDirs = append(allPackageDirs, mainPackageDir)
 	for _, pDir := range allPackageDirs {
 		logger.Printf("running npm publish in %s", pDir)
-		cmd := exec.Command("npm", "publish")
-		cmd.Dir = pDir
+		cmd := exec.Command("npm", "publish", pDir)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
