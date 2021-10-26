@@ -54,7 +54,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: |
           go build ./cmd/npm-binary-releaser/
-          ./npm-binary-releaser -n npm-binary-releaser -r ${{steps.semrel.outputs.version}}
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
+          ./npm-binary-releaser -n npm-binary-releaser -r ${{steps.semrel.outputs.version}} --publish
         if: steps.semrel.outputs.version != ''
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
