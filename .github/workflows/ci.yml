@@ -1,0 +1,60 @@
+name: CI
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: golangci/golangci-lint-action@v2
+  build:
+    runs-on: ${{ matrix.os }}
+    needs: lint
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+      - run: go build ./cmd/npm-binary-releaser/
+      - run: go test -v ./...
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+      - run: |
+          go install github.com/mitchellh/gox@latest
+          go install github.com/tcnksm/ghr@latest
+      - uses: go-semantic-release/action@v1
+        id: semrel
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          ghr: true
+      - run: |
+          gox -parallel 4 -osarch="linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 linux/arm windows/amd64" -ldflags="-extldflags '-static' -s -w -X main.VERSION=${{steps.semrel.outputs.version}}" -output="bin/{{.Dir}}_v${{steps.semrel.outputs.version}}_{{.OS}}_{{.Arch}}" ./cmd/npm-binary-releaser/
+          cd bin/ && shasum -a 256 * > ./npm-binary-releaser_v${{steps.semrel.outputs.version}}_checksums.txt && cd -
+        if: steps.semrel.outputs.version != ''
+        env:
+          CGO_ENABLED: 0
+      - run: ghr $(cat .ghr) bin/
+        if: steps.semrel.outputs.version != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          go build ./cmd/npm-binary-releaser/
+          ./npm-binary-releaser -n npm-binary-releaser -r ${{steps.semrel.outputs.version}}
+        if: steps.semrel.outputs.version != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
