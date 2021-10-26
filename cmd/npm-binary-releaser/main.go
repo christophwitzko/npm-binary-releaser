@@ -80,6 +80,10 @@ func run(c *config.Config) error {
 		})
 	}
 
+	if len(foundFiles) == 0 {
+		return fmt.Errorf("no binary files found at %s", c.InputBinDirPath)
+	}
+
 	allPackageDirs := make([]string, 0, len(files)+1)
 	optionalDependencies := make(map[string]string)
 	for _, file := range foundFiles {
