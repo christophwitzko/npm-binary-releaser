@@ -14,9 +14,9 @@ type PublishConfig struct {
 	Access   string `json:"access"`
 }
 
-func NewDefaultPublishConfig() PublishConfig {
+func NewPublishConfig(cfg *config.Config) PublishConfig {
 	return PublishConfig{
-		Registry: "https://registry.npmjs.org/",
+		Registry: cfg.PublishRegistry,
 		Access:   "public",
 	}
 }
@@ -43,7 +43,7 @@ func NewBinPackageJson(cfg *config.Config, packageName, platform, arch, file str
 		CPU:           []string{arch},
 		Main:          file,
 		Files:         []string{file},
-		PublishConfig: NewDefaultPublishConfig(),
+		PublishConfig: NewPublishConfig(cfg),
 	}
 }
 
@@ -72,6 +72,6 @@ func NewMainPackageJson(cfg *config.Config, packageName string, optDeps map[stri
 			"run.js",
 		},
 		OptionalDependencies: optDeps,
-		PublishConfig:        NewDefaultPublishConfig(),
+		PublishConfig:        NewPublishConfig(cfg),
 	}
 }
