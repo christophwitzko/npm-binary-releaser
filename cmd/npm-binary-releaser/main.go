@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 
 	"github.com/christophwitzko/npm-binary-releaser/pkg/config"
 	"github.com/christophwitzko/npm-binary-releaser/pkg/helper"
@@ -157,8 +158,9 @@ func run(c *config.Config) error {
 
 	if os.Getenv("NPM_CONFIG_USERCONFIG") == "" {
 		if _, err = os.Stat(".npmrc"); os.IsNotExist(err) {
-			logger.Printf("creating .npmrc for %s", c.PublishRegistry)
-			npmRcData := fmt.Sprintf("//%s:_authToken=${NPM_TOKEN}\n", c.PublishRegistry)
+			registryName := strings.TrimPrefix(c.PublishRegistry, "https://")
+			logger.Printf("creating .npmrc for %s", registryName)
+			npmRcData := fmt.Sprintf("//%s:_authToken=${NPM_TOKEN}\n", registryName)
 			if err := os.WriteFile(".npmrc", []byte(npmRcData), 0644); err != nil {
 				return err
 			}
