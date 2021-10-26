@@ -1,6 +1,10 @@
 package templates
 
-import _ "embed"
+import (
+	_ "embed"
+
+	"github.com/christophwitzko/npm-binary-releaser/pkg/config"
+)
 
 //go:embed run.js
 var RunJs []byte
@@ -20,6 +24,8 @@ func NewDefaultPublishConfig() PublishConfig {
 type BinPackageJson struct {
 	Name          string        `json:"name"`
 	Version       string        `json:"version"`
+	License       string        `json:"license,omitempty"`
+	Homepage      string        `json:"homepage,omitempty"`
 	OS            []string      `json:"os"`
 	CPU           []string      `json:"cpu"`
 	Main          string        `json:"main"`
@@ -27,10 +33,12 @@ type BinPackageJson struct {
 	PublishConfig PublishConfig `json:"publishConfig"`
 }
 
-func NewBinPackageJson(packageName, version, platform, arch, file string) BinPackageJson {
+func NewBinPackageJson(cfg *config.Config, packageName, platform, arch, file string) BinPackageJson {
 	return BinPackageJson{
 		Name:          packageName,
-		Version:       version,
+		Version:       cfg.PackageVersion,
+		License:       cfg.License,
+		Homepage:      cfg.Homepage,
 		OS:            []string{platform},
 		CPU:           []string{arch},
 		Main:          file,
@@ -42,18 +50,23 @@ func NewBinPackageJson(packageName, version, platform, arch, file string) BinPac
 type MainPackageJson struct {
 	Name                 string            `json:"name"`
 	Version              string            `json:"version"`
+	License              string            `json:"license,omitempty"`
+	Homepage             string            `json:"homepage,omitempty"`
+	BinPkgPrefix         string            `json:"binPkgPrefix,omitempty"`
 	Bin                  map[string]string `json:"bin"`
 	Files                []string          `json:"files"`
 	OptionalDependencies map[string]string `json:"optionalDependencies"`
 	PublishConfig        PublishConfig     `json:"publishConfig"`
 }
 
-func NewMainPackageJson(packageName, version, binName string, optDeps map[string]string) MainPackageJson {
+func NewMainPackageJson(cfg *config.Config, packageName string, optDeps map[string]string) MainPackageJson {
 	return MainPackageJson{
-		Name:    packageName,
-		Version: version,
+		Name:     packageName,
+		Version:  cfg.PackageVersion,
+		License:  cfg.License,
+		Homepage: cfg.Homepage,
 		Bin: map[string]string{
-			binName: "./run.js",
+			cfg.BinName: "./run.js",
 		},
 		Files: []string{
 			"run.js",

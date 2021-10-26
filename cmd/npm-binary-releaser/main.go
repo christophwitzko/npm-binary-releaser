@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path"
 
+	"github.com/christophwitzko/npm-binary-releaser/pkg/config"
 	"github.com/christophwitzko/npm-binary-releaser/pkg/helper"
 	"github.com/christophwitzko/npm-binary-releaser/pkg/templates"
 	"github.com/spf13/cobra"
@@ -15,32 +16,50 @@ import (
 
 var VERSION string
 
-type Config struct {
-	BinDirPath        string
-	BinName           string
-	PackageNamePrefix string
-	PackageVersion    string
-	PackagesOutPath   string
-	Publish           bool
-}
-
 var logger = log.New(os.Stderr, "[npm-binary-releaser]: ", 0)
 
-func run(c Config) error {
+func main() {
+	cmd := &cobra.Command{
+		Use:     "npm-binary-releaser",
+		Short:   "npm-binary-releaser - release binaries to npm",
+		Run:     cliHandler,
+		Version: VERSION,
+	}
+
+	config.InitConfig(cmd)
+
+	if err := cmd.Execute(); err != nil {
+		fmt.Printf("\n%s\n", err.Error())
+		os.Exit(1)
+	}
+}
+
+func cliHandler(cmd *cobra.Command, args []string) {
+	if err := run(config.NewConfig(cmd)); err != nil {
+		logger.Println(err)
+		os.Exit(1)
+		return
+	}
+}
+
+func run(c *config.Config) error {
 	if c.PackageVersion == "" {
 		return fmt.Errorf("package version is missing")
 	}
 	if c.BinName == "" {
 		return fmt.Errorf("name is missing")
 	}
-	logger.Printf("creating release %s for %s", c.PackageVersion, c.BinName)
-	logger.Printf("creating output directory: %s", c.PackagesOutPath)
-	if err := helper.EnsureOutputDirectory(c.PackagesOutPath); err != nil {
+	if c.PackageName == "" {
+		c.PackageName = c.BinName
+	}
+	logger.Printf("creating release %s for %s (%s)", c.PackageVersion, c.PackageName, c.BinName)
+	logger.Printf("creating output directory: %s", c.OutputDirPath)
+	if err := helper.EnsureOutputDirectory(c.OutputDirPath); err != nil {
 		return err
 	}
 
-	logger.Printf("reading binary files from: %s", c.BinDirPath)
-	files, err := os.ReadDir(c.BinDirPath)
+	logger.Printf("reading binary files from: %s", c.InputBinDirPath)
+	files, err := os.ReadDir(c.InputBinDirPath)
 	if err != nil {
 		return err
 	}
@@ -56,7 +75,7 @@ func run(c Config) error {
 		foundFiles = append(foundFiles, &helper.BinFile{
 			Platform: platform,
 			Arch:     arch,
-			Path:     path.Join(c.BinDirPath, file.Name()),
+			Path:     path.Join(c.InputBinDirPath, file.Name()),
 			FileName: file.Name(),
 		})
 	}
@@ -64,9 +83,9 @@ func run(c Config) error {
 	allPackageDirs := make([]string, 0, len(files)+1)
 	optionalDependencies := make(map[string]string)
 	for _, file := range foundFiles {
-		packageName := fmt.Sprintf("%s-%s-%s", c.BinName, file.Platform, file.Arch)
+		packageName := fmt.Sprintf("%s-%s-%s", c.PackageName, file.Platform, file.Arch)
 		fullPackageName := fmt.Sprintf("%s%s", c.PackageNamePrefix, packageName)
-		pkgDir := path.Join(c.PackagesOutPath, packageName)
+		pkgDir := path.Join(c.OutputDirPath, packageName)
 
 		logger.Printf("[%s] creating package at %s", fullPackageName, pkgDir)
 		if err := os.Mkdir(pkgDir, 0755); err != nil {
@@ -79,7 +98,7 @@ func run(c Config) error {
 		}
 
 		logger.Printf("[%s] creating package.json", fullPackageName)
-		pjsTemplate := templates.NewBinPackageJson(fullPackageName, c.PackageVersion, file.Platform, file.Arch, binFileName)
+		pjsTemplate := templates.NewBinPackageJson(c, fullPackageName, file.Platform, file.Arch, binFileName)
 		pjsData, err := json.MarshalIndent(pjsTemplate, "", "  ")
 		if err != nil {
 			return err
@@ -96,8 +115,11 @@ func run(c Config) error {
 		allPackageDirs = append(allPackageDirs, pkgDir)
 	}
 
-	mainPackageDir := path.Join(c.PackagesOutPath, c.BinName)
-	mainPackageName := fmt.Sprintf("%s%s", c.PackageNamePrefix, c.BinName)
+	mainPackageDir := path.Join(c.OutputDirPath, c.PackageName)
+	mainPackageName := fmt.Sprintf("%s%s", c.PackageNamePrefix, c.PackageName)
+	if c.NoPrefixForMainPackage && c.PackageNamePrefix != "" {
+		mainPackageName = c.PackageName
+	}
 	logger.Printf("[%s] creating main package at %s", mainPackageName, mainPackageDir)
 
 	// create package folder
@@ -106,7 +128,10 @@ func run(c Config) error {
 	}
 
 	logger.Printf("[%s] creating package.json", mainPackageName)
-	pjsTemplate := templates.NewMainPackageJson(mainPackageName, c.PackageVersion, c.BinName, optionalDependencies)
+	pjsTemplate := templates.NewMainPackageJson(c, mainPackageName, optionalDependencies)
+	if c.NoPrefixForMainPackage && c.PackageNamePrefix != "" {
+		pjsTemplate.BinPkgPrefix = c.PackageNamePrefix
+	}
 	pjsData, err := json.MarshalIndent(pjsTemplate, "", "  ")
 	if err != nil {
 		return err
@@ -138,59 +163,4 @@ func run(c Config) error {
 
 	logger.Println("done.")
 	return nil
-}
-
-func mustGetString(cmd *cobra.Command, name string) string {
-	res, err := cmd.Flags().GetString(name)
-	if err != nil {
-		panic(err)
-	}
-	return res
-}
-
-func mustGetBool(cmd *cobra.Command, name string) bool {
-	res, err := cmd.Flags().GetBool(name)
-	if err != nil {
-		panic(err)
-	}
-	return res
-}
-
-func main() {
-	cmd := &cobra.Command{
-		Use:     "npm-binary-releaser",
-		Short:   "npm-binary-releaser - release binaries to npm",
-		Run:     cliHandler,
-		Version: VERSION,
-	}
-
-	cmd.Flags().StringP("input-path", "i", "./bin", "input path that contains the binary files")
-	cmd.Flags().StringP("output-path", "o", "./generated-packages", "output directory")
-	cmd.Flags().StringP("name", "n", "", "name of the binary and package (e.g my-cool-cli)")
-	cmd.Flags().StringP("package-name-prefix", "p", "", "package name prefix for all created packages (e.g. @my-org/)")
-	cmd.Flags().StringP("package-version", "r", "", "version of the created packages")
-	cmd.Flags().Bool("publish", false, "run npm publish for all packages")
-	cmd.Flags().SortFlags = true
-
-	if err := cmd.Execute(); err != nil {
-		fmt.Printf("\n%s\n", err.Error())
-		os.Exit(1)
-	}
-}
-
-func cliHandler(cmd *cobra.Command, args []string) {
-	config := Config{
-		BinDirPath:        mustGetString(cmd, "input-path"),
-		BinName:           mustGetString(cmd, "name"),
-		PackageNamePrefix: mustGetString(cmd, "package-name-prefix"),
-		PackageVersion:    mustGetString(cmd, "package-version"),
-		PackagesOutPath:   mustGetString(cmd, "output-path"),
-		Publish:           mustGetBool(cmd, "publish"),
-	}
-
-	if err := run(config); err != nil {
-		fmt.Printf("error: %v", err)
-		os.Exit(1)
-		return
-	}
 }
