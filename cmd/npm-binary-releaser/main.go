@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/christophwitzko/npm-binary-releaser/pkg/config"
@@ -169,8 +170,12 @@ func run(c *config.Config) error {
 
 	allPackageDirs = append(allPackageDirs, mainPackageDir)
 	for _, pDir := range allPackageDirs {
-		logger.Printf("running npm publish in %s", pDir)
-		cmd := exec.Command("npm", "publish", pDir)
+		publishDir, err := filepath.Abs(pDir)
+		if err != nil {
+			return err
+		}
+		logger.Printf("running npm publish in %s", publishDir)
+		cmd := exec.Command("npm", "publish", publishDir)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
