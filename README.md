@@ -3,6 +3,11 @@
 
 Publish binaries to the npm registry.
 
+## Install
+```
+npm i npm-binary-releaser -g
+```
+
 ## Licence
 
 The [MIT License (MIT)](http://opensource.org/licenses/MIT)
