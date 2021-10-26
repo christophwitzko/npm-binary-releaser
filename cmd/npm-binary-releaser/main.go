@@ -154,6 +154,17 @@ func run(c *config.Config) error {
 		logger.Printf("skipping npm publish step")
 		return nil
 	}
+
+	if os.Getenv("NPM_CONFIG_USERCONFIG") == "" {
+		if _, err = os.Stat(".npmrc"); os.IsNotExist(err) {
+			logger.Printf("creating .npmrc for %s", c.PublishRegistry)
+			npmRcData := fmt.Sprintf("//%s:_authToken=${NPM_TOKEN}\n", c.PublishRegistry)
+			if err := os.WriteFile(".npmrc", []byte(npmRcData), 0644); err != nil {
+				return err
+			}
+		}
+	}
+
 	allPackageDirs = append(allPackageDirs, mainPackageDir)
 	for _, pDir := range allPackageDirs {
 		logger.Printf("running npm publish in %s", pDir)
