@@ -22,36 +22,44 @@ func NewPublishConfig(cfg *config.Config) PublishConfig {
 }
 
 type BinPackageJson struct {
-	Name          string        `json:"name"`
-	Version       string        `json:"version"`
-	License       string        `json:"license,omitempty"`
-	Homepage      string        `json:"homepage,omitempty"`
-	OS            []string      `json:"os"`
-	CPU           []string      `json:"cpu"`
-	Main          string        `json:"main"`
-	Files         []string      `json:"files"`
-	PublishConfig PublishConfig `json:"publishConfig"`
+	Name            string        `json:"name"`
+	Version         string        `json:"version"`
+	Description     string        `json:"description,omitempty"`
+	License         string        `json:"license,omitempty"`
+	Homepage        string        `json:"homepage,omitempty"`
+	Repository      string        `json:"repository,omitempty"`
+	OS              []string      `json:"os"`
+	CPU             []string      `json:"cpu"`
+	Main            string        `json:"main"`
+	Files           []string      `json:"files"`
+	PreferUnplugged bool          `json:"preferUnplugged"`
+	PublishConfig   PublishConfig `json:"publishConfig"`
 }
 
 func NewBinPackageJson(cfg *config.Config, packageName, platform, arch, file string) BinPackageJson {
 	return BinPackageJson{
-		Name:          packageName,
-		Version:       cfg.PackageVersion,
-		License:       cfg.License,
-		Homepage:      cfg.Homepage,
-		OS:            []string{platform},
-		CPU:           []string{arch},
-		Main:          file,
-		Files:         []string{file},
-		PublishConfig: NewPublishConfig(cfg),
+		Name:            packageName,
+		Version:         cfg.PackageVersion,
+		Description:     cfg.Description,
+		License:         cfg.License,
+		Homepage:        cfg.Homepage,
+		Repository:      cfg.Repository,
+		OS:              []string{platform},
+		CPU:             []string{arch},
+		Main:            file,
+		Files:           []string{file},
+		PublishConfig:   NewPublishConfig(cfg),
+		PreferUnplugged: true,
 	}
 }
 
 type MainPackageJson struct {
 	Name                 string            `json:"name"`
 	Version              string            `json:"version"`
+	Description          string            `json:"description,omitempty"`
 	License              string            `json:"license,omitempty"`
 	Homepage             string            `json:"homepage,omitempty"`
+	Repository           string            `json:"repository,omitempty"`
 	BinPkgPrefix         string            `json:"binPkgPrefix,omitempty"`
 	Bin                  map[string]string `json:"bin"`
 	Files                []string          `json:"files"`
@@ -61,10 +69,12 @@ type MainPackageJson struct {
 
 func NewMainPackageJson(cfg *config.Config, packageName string, optDeps map[string]string) MainPackageJson {
 	return MainPackageJson{
-		Name:     packageName,
-		Version:  cfg.PackageVersion,
-		License:  cfg.License,
-		Homepage: cfg.Homepage,
+		Name:        packageName,
+		Version:     cfg.PackageVersion,
+		Description: cfg.Description,
+		License:     cfg.License,
+		Homepage:    cfg.Homepage,
+		Repository:  cfg.Repository,
 		Bin: map[string]string{
 			cfg.BinName: "./run.js",
 		},

@@ -28,6 +28,8 @@ type Config struct {
 	Homepage               string
 	License                string
 	PublishRegistry        string
+	Description            string
+	Repository             string
 	Publish                bool
 	NoPrefixForMainPackage bool
 }
@@ -41,6 +43,8 @@ func InitConfig(cmd *cobra.Command) {
 	cmd.Flags().String("package-name", "", "package name [defaults to 'name'] (e.g. my-cool-cli)")
 	cmd.Flags().String("license", "", "package SPDX license (e.g. MIT)")
 	cmd.Flags().String("homepage", "", "package homepage")
+	cmd.Flags().String("description", "", "package description")
+	cmd.Flags().String("repository", "", "package repository")
 	cmd.Flags().String("publish-registry", "https://registry.npmjs.org/", "npm registry endpoint")
 	cmd.Flags().Bool("publish", false, "run npm publish for all packages")
 	cmd.Flags().Bool("no-prefix-for-main-package", false, "ignore the configured package name prefix for the main package")
@@ -58,6 +62,8 @@ func NewConfig(cmd *cobra.Command) *Config {
 		Homepage:               mustGetString(cmd, "homepage"),
 		License:                mustGetString(cmd, "license"),
 		PublishRegistry:        mustGetString(cmd, "publish-registry"),
+		Description:            mustGetString(cmd, "description"),
+		Repository:             mustGetString(cmd, "repository"),
 		Publish:                mustGetBool(cmd, "publish"),
 		NoPrefixForMainPackage: mustGetBool(cmd, "no-prefix-for-main-package"),
 	}
