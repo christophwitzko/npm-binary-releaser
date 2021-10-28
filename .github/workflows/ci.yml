@@ -54,7 +54,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: |
           go build ./cmd/npm-binary-releaser/
-          ./npm-binary-releaser -n npm-binary-releaser -r ${{steps.semrel.outputs.version}} --publish --license MIT --homepage "https://github.com/christophwitzko/npm-binary-releaser"
+          ./npm-binary-releaser -n npm-binary-releaser -r ${{steps.semrel.outputs.version}} --publish --license MIT --homepage "https://github.com/christophwitzko/npm-binary-releaser" --description "publish binaries to the npm registry" --repository "github:${{ github.repository }}"
         if: steps.semrel.outputs.version != ''
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
