@@ -38,7 +38,7 @@ jobs:
         id: semrel
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          custom-arguments: "--hooks goreleaser"
+          hooks: goreleaser
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: |
