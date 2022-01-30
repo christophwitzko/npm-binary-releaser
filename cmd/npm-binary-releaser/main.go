@@ -74,10 +74,19 @@ func run(c *config.Config) error {
 			logger.Printf("no os/arch found for %s", file.Name())
 			continue
 		}
+		fPath := path.Join(c.InputBinDirPath, file.Name())
+		if file.IsDir() {
+			execPath, err := helper.FindFirstExecutableFileInDir(fPath)
+			if err != nil {
+				logger.Printf("could not find bin file in dir %s %v", fPath, err)
+				continue
+			}
+			fPath = execPath
+		}
 		foundFiles = append(foundFiles, &helper.BinFile{
 			Platform: platform,
 			Arch:     arch,
-			Path:     path.Join(c.InputBinDirPath, file.Name()),
+			Path:     fPath,
 			FileName: file.Name(),
 		})
 	}

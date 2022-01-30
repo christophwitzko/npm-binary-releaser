@@ -1,8 +1,10 @@
 package helper
 
 import (
+	"fmt"
 	"io"
 	"os"
+	"path"
 	"regexp"
 	"strings"
 )
@@ -80,4 +82,18 @@ func EnsureOutputDirectory(path string) error {
 		return err
 	}
 	return nil
+}
+
+func FindFirstExecutableFileInDir(dir string) (string, error) {
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return "", err
+	}
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		return path.Join(dir, file.Name()), nil
+	}
+	return "", fmt.Errorf("no executable file was found")
 }
