@@ -10,8 +10,11 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: golangci/golangci-lint-action@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - uses: golangci/golangci-lint-action@v3
   build:
     runs-on: ${{ matrix.os }}
     needs: lint
@@ -20,31 +23,29 @@ jobs:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
         with:
-          go-version: 1.17
+          go-version: 1.18
       - run: go build ./cmd/npm-binary-releaser/
       - run: go test -v ./...
   release:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
         with:
-          go-version: 1.17
+          go-version: 1.18
       - uses: go-semantic-release/action@v1
         id: semrel
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           hooks: goreleaser
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: |
           go build ./cmd/npm-binary-releaser/
-          ./npm-binary-releaser -i ./dist -n npm-binary-releaser -r ${{steps.semrel.outputs.version}} --publish --license MIT --homepage "https://github.com/christophwitzko/npm-binary-releaser" --description "publish binaries to the npm registry" --repository "github:${{ github.repository }}"
+          ./npm-binary-releaser -i ./dist -n npm-binary-releaser -r ${{steps.semrel.outputs.version}} --publish --license MIT --homepage "https://github.com/${{ github.repository }}" --description "publish binaries to the npm registry" --repository "github:${{ github.repository }}"
         if: steps.semrel.outputs.version != ''
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
