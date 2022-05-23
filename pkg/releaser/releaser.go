@@ -21,9 +21,6 @@ func Run(c *config.Config, logger Logger) error {
 	if c.BinName == "" {
 		return fmt.Errorf("name is missing")
 	}
-	if c.PackageName == "" {
-		c.PackageName = c.BinName
-	}
 	logger.Printf("creating release %s for %s (%s)", c.PackageVersion, c.PackageName, c.BinName)
 	logger.Printf("creating output directory: %s", c.OutputDirPath)
 	if err := helper.EnsureOutputDirectory(c.OutputDirPath); err != nil {

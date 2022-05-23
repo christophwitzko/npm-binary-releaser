@@ -8,6 +8,7 @@ import (
 	"github.com/christophwitzko/npm-binary-releaser/pkg/config"
 	"github.com/christophwitzko/npm-binary-releaser/pkg/releaser"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 var VERSION string
@@ -18,9 +19,27 @@ func main() {
 		Short:   "npm-binary-releaser - release binaries to npm",
 		Run:     cliHandler,
 		Version: VERSION,
+		CompletionOptions: cobra.CompletionOptions{
+			DisableDefaultCmd: true,
+		},
 	}
 
-	config.InitConfig(cmd)
+	cmd.AddCommand(&cobra.Command{
+		Use:   "config",
+		Short: "Print the current npm-binary-releaser config",
+		Run: func(cmd *cobra.Command, args []string) {
+			cfgStr, _ := yaml.Marshal(config.NewConfig(cmd))
+			fmt.Printf("# .npm-binary-releaser.yaml\n%s", string(cfgStr))
+		},
+	})
+
+	config.SetFlags(cmd)
+	cobra.OnInitialize(func() {
+		if err := config.InitConfig(); err != nil {
+			fmt.Printf("\nConfig error: %s\n", err.Error())
+			os.Exit(1)
+		}
+	})
 
 	if err := cmd.Execute(); err != nil {
 		fmt.Printf("\n%s\n", err.Error())
