@@ -11,7 +11,7 @@ import (
 
 type Config struct {
 	BinName                string `yaml:"name"`
-	InputBinDirPath        string `yaml:"inputPath"`
+	InputBinDirPath        string `yaml:"inputPath,omitempty"`
 	TryDefaultInputPaths   bool   `yaml:"-"`
 	PackageName            string `yaml:"packageName"`
 	Description            string `yaml:"description"`

@@ -46,7 +46,7 @@ jobs:
       - run: |
           go build ./cmd/npm-binary-releaser/
           ./npm-binary-releaser config
-          ./npm-binary-releaser -r ${{steps.semrel.outputs.version}}"
+          ./npm-binary-releaser -r ${{steps.semrel.outputs.version}}
         if: steps.semrel.outputs.version != ''
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
