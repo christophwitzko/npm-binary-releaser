@@ -12,6 +12,7 @@ import (
 type Config struct {
 	BinName                string `yaml:"name"`
 	InputBinDirPath        string `yaml:"inputPath"`
+	TryDefaultInputPaths   bool   `yaml:"-"`
 	PackageName            string `yaml:"packageName"`
 	Description            string `yaml:"description"`
 	License                string `yaml:"license"`
@@ -43,12 +44,12 @@ func must(err error) {
 func SetFlags(cmd *cobra.Command) {
 	repo, homepage := GetRepositoryAndHomepageFromEnv()
 	_, packageName, _ := strings.Cut(repo, "/")
-	cmd.PersistentFlags().StringP("input-path", "i", "./bin", "input path that contains the binary files")
+	cmd.PersistentFlags().StringP("input-path", "i", "", "input path that contains the binary files [uses ./bin or ./dist as default]")
 	cmd.PersistentFlags().StringP("output-path", "o", "./generated-packages", "output directory")
 	cmd.PersistentFlags().StringP("name", "n", packageName, "name of the binary (e.g my-cool-cli)")
 	cmd.PersistentFlags().StringP("package-name-prefix", "p", "", "package name prefix for all created packages (e.g. @my-org/)")
 	cmd.PersistentFlags().StringP("package-version", "r", "", "version of the created packages")
-	cmd.PersistentFlags().String("package-name", "", "package name [defaults to the 'name' config] (e.g. my-cool-cli)")
+	cmd.PersistentFlags().String("package-name", "", "package name [defaults to the name of the binary] (e.g. my-cool-cli)")
 	cmd.PersistentFlags().String("license", "", "package SPDX license (e.g. MIT)")
 	cmd.PersistentFlags().String("homepage", homepage, "package homepage")
 	cmd.PersistentFlags().String("description", "", "package description")
@@ -77,6 +78,7 @@ func NewConfig(cmd *cobra.Command) *Config {
 	must(err)
 	c := &Config{
 		InputBinDirPath:        viper.GetString("inputPath"),
+		TryDefaultInputPaths:   !viper.IsSet("inputPath"),
 		OutputDirPath:          viper.GetString("outputPath"),
 		BinName:                viper.GetString("name"),
 		PackageNamePrefix:      viper.GetString("packageNamePrefix"),
