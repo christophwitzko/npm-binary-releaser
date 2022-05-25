@@ -2,7 +2,6 @@ package releaser
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -15,36 +14,14 @@ import (
 	"github.com/christophwitzko/npm-binary-releaser/pkg/templates"
 )
 
-var defaultInputDirPaths = []string{"./bin", "./dist"}
-
 func Run(c *config.Config, logger Logger) error {
-	if c.PackageVersion == "" {
-		return fmt.Errorf("package version is missing")
-	}
-	if c.BinName == "" {
-		return fmt.Errorf("name is missing")
+	if err := c.Validate(); err != nil {
+		return err
 	}
 	logger.Printf("creating release %s for %s (%s)", c.PackageVersion, c.PackageName, c.BinName)
 	logger.Printf("creating output directory: %s", c.OutputDirPath)
 	if err := helper.EnsureOutputDirectory(c.OutputDirPath); err != nil {
 		return err
-	}
-
-	if c.TryDefaultInputPaths {
-		for _, dirPath := range defaultInputDirPaths {
-			_, err := os.Stat(dirPath)
-			if err == nil {
-				c.InputBinDirPath = dirPath
-				break
-			}
-			if errors.Is(err, os.ErrNotExist) {
-				continue
-			}
-			return err
-		}
-	}
-	if c.InputBinDirPath == "" {
-		return fmt.Errorf("input path is missing or does not exist")
 	}
 
 	logger.Printf("reading binary files from: %s", c.InputBinDirPath)

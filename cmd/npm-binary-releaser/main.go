@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/christophwitzko/npm-binary-releaser/pkg/config"
 	"github.com/christophwitzko/npm-binary-releaser/pkg/releaser"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -23,19 +22,29 @@ func main() {
 			DisableDefaultCmd: true,
 		},
 	}
+	SetFlags(cmd)
 
-	cmd.AddCommand(&cobra.Command{
+	configCmd := &cobra.Command{
 		Use:   "config",
 		Short: "Print the current npm-binary-releaser config",
 		Run: func(cmd *cobra.Command, args []string) {
-			cfgStr, _ := yaml.Marshal(config.NewConfig(cmd))
+			shouldValidate, _ := cmd.Flags().GetBool("validate")
+			c := NewConfig(cmd)
+			if shouldValidate {
+				if err := c.Validate(); err != nil {
+					fmt.Printf("config validation error: %s\n", err)
+					os.Exit(1)
+				}
+			}
+			cfgStr, _ := yaml.Marshal(c)
 			fmt.Printf("# .npm-binary-releaser.yaml\n%s", string(cfgStr))
 		},
-	})
+	}
+	configCmd.Flags().Bool("validate", false, "validate the config")
+	cmd.AddCommand(configCmd)
 
-	config.SetFlags(cmd)
 	cobra.OnInitialize(func() {
-		if err := config.InitConfig(); err != nil {
+		if err := InitConfig(); err != nil {
 			fmt.Printf("\nConfig error: %s\n", err.Error())
 			os.Exit(1)
 		}
@@ -49,7 +58,7 @@ func main() {
 
 func cliHandler(cmd *cobra.Command, args []string) {
 	var logger = log.New(os.Stderr, "[npm-binary-releaser]: ", 0)
-	if err := releaser.Run(config.NewConfig(cmd), logger); err != nil {
+	if err := releaser.Run(NewConfig(cmd), logger); err != nil {
 		logger.Println(err)
 		os.Exit(1)
 		return
