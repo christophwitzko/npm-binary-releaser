@@ -26,6 +26,9 @@ type Config struct {
 
 var defaultInputDirPaths = []string{"./bin", "./dist"}
 
+const DefaultOutputDirPath = "./generated-packages"
+const DefaultPublishRegistry = "https://registry.npmjs.org/"
+
 func (c *Config) Validate() error {
 	if c.PackageName == "" {
 		c.PackageName = c.BinName

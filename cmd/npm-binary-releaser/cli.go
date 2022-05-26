@@ -15,7 +15,7 @@ func must(err error) {
 func SetFlags(cmd *cobra.Command) {
 	envInfo := config.GetRepositoryAndHomepageFromEnv()
 	cmd.PersistentFlags().StringP("input-path", "i", "", "input path that contains the binary files [uses ./bin or ./dist as default]")
-	cmd.PersistentFlags().StringP("output-path", "o", "./generated-packages", "output directory")
+	cmd.PersistentFlags().StringP("output-path", "o", config.DefaultOutputDirPath, "output directory")
 	cmd.PersistentFlags().StringP("name", "n", envInfo.PackageName, "name of the binary (e.g my-cool-cli)")
 	cmd.PersistentFlags().StringP("package-name-prefix", "p", "", "package name prefix for all created packages (e.g. @my-org/)")
 	cmd.PersistentFlags().StringP("package-version", "r", "", "version of the created packages")
@@ -24,7 +24,7 @@ func SetFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().String("homepage", envInfo.Homepage, "package homepage")
 	cmd.PersistentFlags().String("description", "", "package description")
 	cmd.PersistentFlags().String("repository", envInfo.Repository, "package repository")
-	cmd.PersistentFlags().String("publish-registry", "https://registry.npmjs.org/", "npm registry endpoint")
+	cmd.PersistentFlags().String("publish-registry", config.DefaultPublishRegistry, "npm registry endpoint")
 	cmd.PersistentFlags().Bool("publish", false, "run npm publish for all packages")
 	cmd.PersistentFlags().Bool("no-prefix-for-main-package", false, "ignore the configured package name prefix for the main package")
 	cmd.PersistentFlags().SortFlags = true
