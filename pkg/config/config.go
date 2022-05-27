@@ -68,9 +68,9 @@ func (c *Config) Validate() error {
 }
 
 type EnvInfo struct {
-	Repository  string
-	Homepage    string
-	PackageName string
+	Repository string
+	Homepage   string
+	Name       string
 }
 
 func GetRepositoryAndHomepageFromEnv() EnvInfo {
@@ -81,8 +81,8 @@ func GetRepositoryAndHomepageFromEnv() EnvInfo {
 	}
 	_, packageName, _ := strings.Cut(repo, "/")
 	return EnvInfo{
-		Repository:  fmt.Sprintf("github:%s", repo),
-		Homepage:    fmt.Sprintf("%s/%s", serverUrl, repo),
-		PackageName: packageName,
+		Repository: fmt.Sprintf("github:%s", repo),
+		Homepage:   fmt.Sprintf("%s/%s", serverUrl, repo),
+		Name:       packageName,
 	}
 }

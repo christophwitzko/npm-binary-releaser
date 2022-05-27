@@ -16,7 +16,7 @@ func SetFlags(cmd *cobra.Command) {
 	envInfo := config.GetRepositoryAndHomepageFromEnv()
 	cmd.PersistentFlags().StringP("input-path", "i", "", "input path that contains the binary files [uses ./bin or ./dist as default]")
 	cmd.PersistentFlags().StringP("output-path", "o", config.DefaultOutputDirPath, "output directory")
-	cmd.PersistentFlags().StringP("name", "n", envInfo.PackageName, "name of the binary (e.g my-cool-cli)")
+	cmd.PersistentFlags().StringP("name", "n", envInfo.Name, "name of the binary (e.g my-cool-cli)")
 	cmd.PersistentFlags().StringP("package-name-prefix", "p", "", "package name prefix for all created packages (e.g. @my-org/)")
 	cmd.PersistentFlags().StringP("package-version", "r", "", "version of the created packages")
 	cmd.PersistentFlags().String("package-name", "", "package name [defaults to the name of the binary] (e.g. my-cool-cli)")
