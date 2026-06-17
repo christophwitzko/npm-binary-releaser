@@ -24,6 +24,24 @@ func Run(c *config.Config, logger Logger) error {
 		return err
 	}
 
+	const readmeFileName = "README.md"
+	includeReadme := false
+	if c.ReadmePath != "" {
+		if readmeInfo, err := os.Stat(c.ReadmePath); err == nil && !readmeInfo.IsDir() {
+			logger.Printf("including %s in generated packages", c.ReadmePath)
+			includeReadme = true
+		} else if err != nil && !os.IsNotExist(err) {
+			return err
+		}
+	}
+	copyReadme := func(packageName, pkgDir string) error {
+		if !includeReadme {
+			return nil
+		}
+		logger.Printf("[%s] copying %s", packageName, readmeFileName)
+		return helper.CopyFile(c.ReadmePath, path.Join(pkgDir, readmeFileName))
+	}
+
 	logger.Printf("reading binary files from: %s", c.InputBinDirPath)
 	files, err := os.ReadDir(c.InputBinDirPath)
 	if err != nil {
@@ -107,7 +125,7 @@ func Run(c *config.Config, logger Logger) error {
 	}
 
 	logger.Printf("[%s] creating package.json", mainPackageName)
-	pjsTemplate := templates.NewMainPackageJson(c, mainPackageName, optionalDependencies)
+	pjsTemplate := templates.NewMainPackageJson(c, mainPackageName, optionalDependencies, includeReadme)
 	if c.NoPrefixForMainPackage && c.PackageNamePrefix != "" {
 		pjsTemplate.BinPkgPrefix = c.PackageNamePrefix
 	}
@@ -122,6 +140,9 @@ func Run(c *config.Config, logger Logger) error {
 	// create run.js
 	logger.Printf("[%s] creating run.js", mainPackageName)
 	if err := os.WriteFile(path.Join(mainPackageDir, "run.js"), templates.RunJs, 0755); err != nil {
+		return err
+	}
+	if err := copyReadme(mainPackageName, mainPackageDir); err != nil {
 		return err
 	}
 

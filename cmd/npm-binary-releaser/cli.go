@@ -24,6 +24,7 @@ func SetFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().String("homepage", envInfo.Homepage, "package homepage")
 	cmd.PersistentFlags().String("description", "", "package description")
 	cmd.PersistentFlags().String("repository", envInfo.Repository, "package repository")
+	cmd.PersistentFlags().String("readme-path", config.DefaultReadmePath, "README file to include in generated packages")
 	cmd.PersistentFlags().String("publish-registry", config.DefaultPublishRegistry, "npm registry endpoint")
 	cmd.PersistentFlags().Bool("publish", false, "run npm publish for all packages")
 	cmd.PersistentFlags().Bool("no-prefix-for-main-package", false, "ignore the configured package name prefix for the main package")
@@ -38,6 +39,7 @@ func SetFlags(cmd *cobra.Command) {
 	must(viper.BindPFlag("homepage", cmd.PersistentFlags().Lookup("homepage")))
 	must(viper.BindPFlag("description", cmd.PersistentFlags().Lookup("description")))
 	must(viper.BindPFlag("repository", cmd.PersistentFlags().Lookup("repository")))
+	must(viper.BindPFlag("readmePath", cmd.PersistentFlags().Lookup("readme-path")))
 	must(viper.BindPFlag("publishRegistry", cmd.PersistentFlags().Lookup("publish-registry")))
 	must(viper.BindPFlag("publish", cmd.PersistentFlags().Lookup("publish")))
 	must(viper.BindPFlag("noPrefixForMainPackage", cmd.PersistentFlags().Lookup("no-prefix-for-main-package")))
@@ -58,6 +60,7 @@ func NewConfig(cmd *cobra.Command) *config.Config {
 		Homepage:               viper.GetString("homepage"),
 		Description:            viper.GetString("description"),
 		Repository:             viper.GetString("repository"),
+		ReadmePath:             viper.GetString("readmePath"),
 		PublishRegistry:        viper.GetString("publishRegistry"),
 		Publish:                viper.GetBool("publish"),
 		NoPrefixForMainPackage: viper.GetBool("noPrefixForMainPackage"),

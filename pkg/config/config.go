@@ -20,6 +20,7 @@ type Config struct {
 	NoPrefixForMainPackage bool   `yaml:"noPrefixForMainPackage"`
 	PackageVersion         string `yaml:"-"`
 	OutputDirPath          string `yaml:"outputPath"`
+	ReadmePath             string `yaml:"readmePath"`
 	PublishRegistry        string `yaml:"publishRegistry"`
 	Publish                bool   `yaml:"publish"`
 }
@@ -27,6 +28,7 @@ type Config struct {
 var defaultInputDirPaths = []string{"./bin", "./dist"}
 
 const DefaultOutputDirPath = "./generated-packages"
+const DefaultReadmePath = "README.md"
 const DefaultPublishRegistry = "https://registry.npmjs.org/"
 
 func (c *Config) Validate() error {

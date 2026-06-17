@@ -1,3 +1,4 @@
 description: "publish binaries to the npm registry"
 license: "MIT"
+readmePath: "README.md"
 publish: true

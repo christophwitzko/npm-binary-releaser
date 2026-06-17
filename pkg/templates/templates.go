@@ -36,6 +36,13 @@ type BinPackageJson struct {
 	PublishConfig   PublishConfig `json:"publishConfig"`
 }
 
+func packageFiles(files []string, includeReadme bool) []string {
+	if includeReadme {
+		files = append(files, "README.md")
+	}
+	return files
+}
+
 func NewBinPackageJson(cfg *config.Config, packageName, platform, arch, file string) BinPackageJson {
 	return BinPackageJson{
 		Name:            packageName,
@@ -67,7 +74,7 @@ type MainPackageJson struct {
 	PublishConfig        PublishConfig     `json:"publishConfig"`
 }
 
-func NewMainPackageJson(cfg *config.Config, packageName string, optDeps map[string]string) MainPackageJson {
+func NewMainPackageJson(cfg *config.Config, packageName string, optDeps map[string]string, includeReadme bool) MainPackageJson {
 	return MainPackageJson{
 		Name:        packageName,
 		Version:     cfg.PackageVersion,
@@ -78,9 +85,7 @@ func NewMainPackageJson(cfg *config.Config, packageName string, optDeps map[stri
 		Bin: map[string]string{
 			cfg.BinName: "./run.js",
 		},
-		Files: []string{
-			"run.js",
-		},
+		Files:                packageFiles([]string{"run.js"}, includeReadme),
 		OptionalDependencies: optDeps,
 		PublishConfig:        NewPublishConfig(cfg),
 	}
