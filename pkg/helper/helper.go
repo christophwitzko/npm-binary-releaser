@@ -16,7 +16,7 @@ type BinFile struct {
 	FileName string
 }
 
-func CopyFile(from, to string) error {
+func CopyFile(from, to string) (err error) {
 	info, err := os.Stat(from)
 	if err != nil {
 		return err
@@ -26,13 +26,21 @@ func CopyFile(from, to string) error {
 	if err != nil {
 		return err
 	}
-	defer fromFile.Close()
+	defer func() {
+		if closeErr := fromFile.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 
 	toFile, err := os.OpenFile(to, os.O_WRONLY|os.O_CREATE, info.Mode())
 	if err != nil {
 		return err
 	}
-	defer toFile.Close()
+	defer func() {
+		if closeErr := toFile.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 
 	_, err = io.Copy(toFile, fromFile)
 	return err
